@@ -1,0 +1,6 @@
+---
+# vars file for Demo_role
+pkg1: httpd
+pkg2: maven
+usr1: sk
+usr2: u2

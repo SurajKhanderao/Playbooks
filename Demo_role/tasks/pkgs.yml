@@ -1,0 +1,10 @@
+---
+- name: install Pakages
+  yum:
+    name: "{{item}}"
+    state: present
+  loop:
+    - "{{pkg1}}"
+    - "{{pkg2}}"
+
+  notify: Start Httpd

@@ -1,0 +1,7 @@
+---
+# handlers file for Demo_role
+- name: Start Httpd
+  service:
+    name: httpd
+    state: started
+    enabled: yes

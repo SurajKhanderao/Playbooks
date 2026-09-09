@@ -1,0 +1,14 @@
+---
+    - name: Uninstalling Apps
+      yum:
+        name: httpd
+        state: absent
+
+    - name: Deleting users
+      user:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - sk
+        - u2
+

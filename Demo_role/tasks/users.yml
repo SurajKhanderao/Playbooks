@@ -1,0 +1,14 @@
+---
+- name: creaating users
+  user:
+    name: "{{item}}"
+    state: present
+  loop:
+    - "{{usr1}}"
+    - "{{usr2}}"
+
+- command: tail -1 /etc/passwd
+  register: user_info
+
+- debug:
+    var: user_info.stdout
