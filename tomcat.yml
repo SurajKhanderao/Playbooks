@@ -1,4 +1,3 @@
-
 ---
 - name: Setting_up Tomcat
   hosts: all
@@ -23,7 +22,7 @@
         state: present
 
     - name: Creating User
-      user:                              # ERROR: user module was missing
+      user:
         name: "{{ user }}"
         group: "{{ group }}"
         system: yes
@@ -42,7 +41,7 @@
     - name: Download Tomcat Archive
       get_url:
         url: https://dlcdn.apache.org/tomcat/tomcat-11/v11.0.25/bin/apache-tomcat-11.0.25.tar.gz
-        dest: "{{ archive }}"             # ERROR: archieve → CORRECT: archive
+        dest: "{{ archive }}"
 
     - name: Extracting file
       unarchive:
@@ -53,10 +52,14 @@
           - "--strip-components=1"
         owner: "{{ user }}"
         group: "{{ group }}"
+        creates: "{{ dir }}/bin/catalina.sh"
 
     - name: Creating tomcat-user
       copy:
         dest: "{{ dir }}/conf/tomcat-users.xml"
+        owner: "{{ user }}"
+        group: "{{ group }}"
+        mode: "0600"
         content: |
           <?xml version="1.0" encoding="UTF-8"?>
           <tomcat-users xmlns="http://tomcat.apache.org/xml"
@@ -72,14 +75,14 @@
                   roles="manager-gui,manager-script"/>
 
           </tomcat-users>
-          # ERROR: XML indentation was wrong
-          # CORRECT: all XML must be inside content: |
+      notify: Restart Tomcat
 
     - name: Removing those lines from context.xml
       replace:
         path: "{{ dir }}/webapps/manager/META-INF/context.xml"
-        regexp: '^\s*<Valve className="org\.apache\.catalina\.valves\.RemoteAddrValve".*\/>\s*$'
+        regexp: '(?s)<Valve\s+className="org\.apache\.catalina\.valves\.RemoteAddrValve".*?/>'
         replace: ''
+      notify: Restart Tomcat
 
     - name: Creating Tomcat service
       copy:
@@ -109,16 +112,23 @@
 
           [Install]
           WantedBy=multi-user.target
-          # ERROR: systemd content was incorrectly indented
-          # CORRECT: everything belongs inside content: |
-
-    - name: Reload Daemons
-      systemd:
-        daemon_reload: yes
+      notify:
+        - Reload systemd
+        - Restart Tomcat
 
     - name: Start Tomcat service
-      systemd:
+      service:
         name: tomcat
         state: started
         enabled: yes
 
+  handlers:
+
+    - name: Reload systemd
+      systemd:
+        daemon_reload: yes
+
+    - name: Restart Tomcat
+      systemd:
+        name: tomcat
+        state: restarted
